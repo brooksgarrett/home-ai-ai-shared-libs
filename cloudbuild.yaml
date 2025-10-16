@@ -24,7 +24,7 @@ steps:
       - |
         mkdir -p ~/.config/pip
         printf "[distutils]\nindex-servers = \n  ${_REPO_NAME}\n\n[${_REPO_NAME}]\nrepository: https://${_REGION}-python.pkg.dev/${PROJECT_ID}/${_REPO_NAME}/\n" > ~/.pypirc
-        printf "[global]\nindex-url = https://${_REGION}-python.pkg.dev/${PROJECT_ID}/${_REPO_NAME}/simple/\n" > ~/.config/pip/pip.conf
+        printf "[global]\nextra-index-url = https://${_REGION}-python.pkg.dev/${PROJECT_ID}/${_REPO_NAME}/simple/\n" > ~/.config/pip/pip.conf
 
   # Step 4: Upload the package to Artifact Registry using twine
   - name: 'python:3.9'
@@ -34,7 +34,7 @@ steps:
       - |
         twine upload --repository-url https://${_REGION}-python.pkg.dev/${PROJECT_ID}/${_REPO_NAME}/ dist/*
 
-substitutions:
+substitutions: 
   _REPO_NAME: 'home-ai-ai-python'
   _REGION: 'us-central1'
 
