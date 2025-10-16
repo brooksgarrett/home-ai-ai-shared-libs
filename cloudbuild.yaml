@@ -2,7 +2,7 @@ steps:
   # Install build dependencies
   - name: 'python:3.9-slim'
     entrypoint: 'pip'
-    args: ['install', 'build', 'twine', 'keyrings.google_artifact_registry_auth']
+    args: ['install', 'build', 'twine', 'keyrings.google-artifact-registry-auth']
     id: 'Install build tools'
 
   # Build the package
