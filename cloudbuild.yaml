@@ -1,25 +1,39 @@
 steps:
-  # Install build dependencies
-  - name: 'python:3.9-slim'
-    entrypoint: 'pip'
-    args: ['install', 'build', 'twine', 'keyrings.google-artifact-registry-auth']
-    id: 'Install build tools'
-
-  # Build the package
-  - name: 'python:3.9-slim'
-    entrypoint: 'python'
-    args: ['-m', 'build']
-    id: 'Build package'
-
-  # Publish the package to Artifact Registry
-  - name: 'python:3.9-slim'
-    entrypoint: 'sh'
+  # Step 1: Install necessary tools
+  - name: 'python:3.9'
+    entrypoint: /bin/bash
     args:
       - '-c'
       - |
-        python3 -m keyring --list-backends
-        twine upload --repository-url https://${_REGION}-python.pkg.dev/${PROJECT_ID}/home-ai-ai-python/ dist/*
-    id: 'Publish package'
+        pip install --upgrade pip setuptools wheel build twine
+        pip install keyring keyrings.google-artifact-registry-auth
 
-options:
-  logging: CLOUD_LOGGING_ONLY
+  # Step 2: Build the Python package (sdist and wheel)
+  - name: 'python:3.9'
+    entrypoint: /bin/bash
+    args:
+      - '-c'
+      - |
+        python -m build
+
+  # Step 3: Configure .pypirc for Twine authentication
+  - name: 'python:3.9'
+    entrypoint: /bin/bash
+    args:
+      - '-c'
+      - |
+        mkdir -p ~/.config/pip
+        printf "[distutils]\nindex-servers = \n  ${_REPO_NAME}\n\n[${_REPO_NAME}]\nrepository: https://${_REGION}-python.pkg.dev/${PROJECT_ID}/${_REPO_NAME}/\n" > ~/.pypirc
+        printf "[global]\nindex-url = https://${_REGION}-python.pkg.dev/${PROJECT_ID}/${_REPO_NAME}/simple/\n" > ~/.config/pip/pip.conf
+
+  # Step 4: Upload the package to Artifact Registry using twine
+  - name: 'python:3.9'
+    entrypoint: /bin/bash
+    args:
+      - '-c'
+      - |
+        twine upload --repository-url https://${_REGION}-python.pkg.dev/${PROJECT_ID}/${_REPO_NAME}/ dist/*
+
+substitutions:
+  _REPO_NAME: 'home-ai-ai-python'
+  _REGION: 'us-central1'
