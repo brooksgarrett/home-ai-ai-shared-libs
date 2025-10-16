@@ -1,25 +1,23 @@
 steps:
   - name: 'python'
-    entrypoint: 'pip'
-    args: ['install', 'twine', 'build', 'keyrings.google-artifactregistry-auth']
-
-  - name: 'python'
-    entrypoint: 'python'
-    args: ['-m', 'build']
-
-  - name: 'python'
-    entrypoint: 'python'
+    entrypoint: '/bin/bash' # Use a shell entrypoint
     args:
-      - '-m'
-      - 'twine'
-      - 'upload'
-      - '--repository-url'
-      - 'https://${_REGION}-python.pkg.dev/${PROJECT_ID}/${_REPO_NAME}/'
-      - 'dist/*'
-  
+      - '-c' # Pass the following string as a command to the shell
+      - | # Use multi-line string for clarity
+        # Install dependencies
+        pip install twine build keyrings.google-artifactregistry-auth
+        
+        # Build the package (same container)
+        python -m build
+        
+        # Upload the package (same container)
+        python -m twine upload \
+          --repository-url 'https://${_LOCATION}-python.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/' \
+          dist/*
+
 substitutions: 
-  _REPO_NAME: 'home-ai-ai-python'
-  _REGION: 'us-central1'
+  _REPOSITORY: 'home-ai-ai-python'
+  _LOCATION: 'us-central1'
 
 options:
   logging: CLOUD_LOGGING_ONLY
