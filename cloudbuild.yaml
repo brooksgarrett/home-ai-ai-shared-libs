@@ -1,0 +1,25 @@
+steps:
+  # Install build dependencies
+  - name: 'python:3.9-slim'
+    entrypoint: 'pip'
+    args: ['install', 'build', 'twine', 'keyrings.google_artifact_registry_auth']
+    id: 'Install build tools'
+
+  # Build the package
+  - name: 'python:3.9-slim'
+    entrypoint: 'python'
+    args: ['-m', 'build']
+    id: 'Build package'
+
+  # Publish the package to Artifact Registry
+  - name: 'python:3.9-slim'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        python3 -m keyring --list-backends
+        twine upload --repository-url https://${_REGION}-python.pkg.dev/${PROJECT_ID}/home-ai-ai-python/ dist/*
+    id: 'Publish package'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
